@@ -38,8 +38,8 @@ jobs:
       - name: Grant gradlew execute permission
         run: chmod +x gradlew
 
-      - name: Build debug APK
-        run: ./gradlew --no-daemon assembleDebug
+      - name: Build APK and AAR
+        run: ./gradlew --no-daemon assembleDebug :Bcore:assembleRelease
 
       - name: Upload debug APK artifacts
         if: success()
@@ -47,3 +47,10 @@ jobs:
         with:
           name: debug-apk
           path: NewBlackbox/app/build/outputs/apk/debug/*.apk
+
+      - name: Upload SDK AAR artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-aar
+          path: NewBlackbox/Bcore/build/outputs/aar/*.aar
