@@ -1,0 +1,56 @@
+name: Android Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: NewBlackbox
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK and NDK components
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager --install "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0" \
+            "ndk;29.0.13846066"
+
+      - name: Grant gradlew execute permission
+        run: chmod +x gradlew
+
+      - name: Build APK and AAR
+        run: ./gradlew --no-daemon assembleDebug :Bcore:assembleRelease
+
+      - name: Upload debug APK artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: NewBlackbox/app/build/outputs/apk/debug/*.apk
+
+      - name: Upload SDK AAR artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-aar
+          path: NewBlackbox/Bcore/build/outputs/aar/*.aar
